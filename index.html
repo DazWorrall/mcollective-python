@@ -1,0 +1,221 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Python MCollective RPC Client &mdash; mcollective-python v0.0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="mcollective-python v0.0 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">mcollective-python v0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="python-mcollective-rpc-client">
+<h1>Python MCollective RPC Client<a class="headerlink" href="#python-mcollective-rpc-client" title="Permalink to this headline">¶</a></h1>
+<p>mcollective-python is an attempt to build Python compatible RPC bindings for
+PuppetLabs&#8217; MCollective.</p>
+<p>Only an RPC client is included.</p>
+<div class="section" id="api-documentation">
+<h2>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+<span class="target" id="module-mcollective"></span><dl class="exception">
+<dt id="mcollective.AlreadySentException">
+<em class="property">exception </em><tt class="descclassname">mcollective.</tt><tt class="descname">AlreadySentException</tt><a class="reference internal" href="_modules/mcollective.html#AlreadySentException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mcollective.AlreadySentException" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="mcollective.Message">
+<em class="property">class </em><tt class="descclassname">mcollective.</tt><tt class="descname">Message</tt><big>(</big><em>body</em>, <em>stomp_client</em>, <em>prefix='mcollective'</em>, <em>target='rpcutil'</em><big>)</big><a class="reference internal" href="_modules/mcollective.html#Message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mcollective.Message" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="mcollective.Message.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>body</em>, <em>stomp_client</em>, <em>prefix='mcollective'</em>, <em>target='rpcutil'</em><big>)</big><a class="reference internal" href="_modules/mcollective.html#Message.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mcollective.Message.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new message.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>body</strong> (<em>dict</em>) &#8211; Correctly encoded RPC message.</li>
+<li><strong>stomp_client</strong> &#8211; Open connection to STOMP server</li>
+<li><strong>prefix</strong> &#8211; MCollective prefix</li>
+<li><strong>target</strong> &#8211; MCollective target</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mcollective.Message.sign">
+<tt class="descname">sign</tt><big>(</big><em>private_key</em>, <em>certificate_name</em>, <em>sender_id='python'</em><big>)</big><a class="reference internal" href="_modules/mcollective.html#Message.sign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mcollective.Message.sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sign the body of the message.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>private_key</strong> (<em>M2Crypto.RSA.RSA</em>) &#8211; an RSA object with a private key loaded.</li>
+<li><strong>certificate_name</strong> (<em>str</em>) &#8211; the name of the matching cert (as stored on the agents).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mcollective.Message.subscribe_to_replies">
+<tt class="descname">subscribe_to_replies</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mcollective.html#Message.subscribe_to_replies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mcollective.Message.subscribe_to_replies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subscribe to the response topic for this message.</p>
+<p>You should run this before sending the message, if you are interested
+in the replies from agents.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mcollective.Message.send">
+<tt class="descname">send</tt><big>(</big><em>debug=False</em><big>)</big><a class="reference internal" href="_modules/mcollective.html#Message.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mcollective.Message.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the encoded message to the target topic</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><strong>debug</strong> (<em>boolean</em>) &#8211; if true, the message will be printed to standard error.</td>
+</tr>
+</tbody>
+</table>
+<p>You can only send each message once. Subsequent calls will raise <a class="reference internal" href="#mcollective.AlreadySentException" title="mcollective.AlreadySentException"><tt class="xref py py-class docutils literal"><span class="pre">AlreadySentException</span></tt></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="mcollective.Message.collect_results">
+<tt class="descname">collect_results</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/mcollective.html#Message.collect_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mcollective.Message.collect_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collect the results from a previous <a class="reference internal" href="#mcollective.Message.send" title="mcollective.Message.send"><tt class="xref py py-func docutils literal"><span class="pre">Message.send()</span></tt></a> call.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body">list of STOMP messages which match this object&#8217;s <cite>:requestid</cite></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="mcollective.Message.send_and_await_results">
+<tt class="descname">send_and_await_results</tt><big>(</big><em>timeout=2</em>, <em>debug=False</em><big>)</big><a class="reference internal" href="_modules/mcollective.html#Message.send_and_await_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mcollective.Message.send_and_await_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the prepared RPC message, wait a set period and collect the results.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>timeout</strong> (<em>int</em>) &#8211; Time to wait for a response.</li>
+<li><strong>debug</strong> (<em>boolean</em>) &#8211; if true, the message will be printed to standard error.</li>
+</ul>
+</td>
+</tr>
+<tr class="field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list of STOMP messages which match this object&#8217;s <cite>:requestid</cite></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Python MCollective RPC Client</a><ul>
+<li><a class="reference internal" href="#api-documentation">API Documentation</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">mcollective-python v0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Aaron Brady.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

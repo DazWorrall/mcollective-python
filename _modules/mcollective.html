@@ -1,0 +1,188 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>mcollective &mdash; mcollective-python v0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="mcollective-python v0.0 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">mcollective-python v0.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for mcollective</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">yaml</span> <span class="kn">import</span> <span class="n">load</span><span class="p">,</span> <span class="n">dump</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span><span class="p">,</span> <span class="n">sleep</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">sha1</span>
+
+<div class="viewcode-block" id="AlreadySentException"><a class="viewcode-back" href="../index.html#mcollective.AlreadySentException">[docs]</a><span class="k">class</span> <span class="nc">AlreadySentException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="Message"><a class="viewcode-back" href="../index.html#mcollective.Message">[docs]</a><span class="k">class</span> <span class="nc">Message</span><span class="p">:</span>
+<div class="viewcode-block" id="Message.__init__"><a class="viewcode-back" href="../index.html#mcollective.Message.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">stomp_client</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;mcollective&#39;</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="s">&#39;rpcutil&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Create a new message.</span>
+<span class="sd">        </span>
+<span class="sd">        :param body: Correctly encoded RPC message.</span>
+<span class="sd">        :type body: dict</span>
+<span class="sd">        :param stomp_client: Open connection to STOMP server</span>
+<span class="sd">        :param prefix: MCollective prefix</span>
+<span class="sd">        :param target: MCollective target&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stomp_client</span> <span class="o">=</span> <span class="n">stomp_client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target</span> <span class="o">=</span> <span class="s">&#39;/topic/</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">.command&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_reply</span> <span class="o">=</span> <span class="s">&#39;/topic/</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">.reply&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rid</span> <span class="o">=</span> <span class="n">sha1</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="p">()))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sent</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">r</span><span class="p">[</span><span class="s">&#39;:msgtime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="p">())</span>
+        <span class="n">r</span><span class="p">[</span><span class="s">&#39;:filter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;identity&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s">&#39;fact&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s">&#39;agent&#39;</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="s">&#39;cf_class&#39;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="p">}</span>
+        <span class="n">r</span><span class="p">[</span><span class="s">&quot;:requestid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rid</span>
+        <span class="n">r</span><span class="p">[</span><span class="s">&quot;:msgtarget&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span>
+        <span class="n">r</span><span class="p">[</span><span class="s">&#39;:body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dump</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">explicit_start</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">explicit_end</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">r</span>
+    </div>
+<div class="viewcode-block" id="Message.subscribe_to_replies"><a class="viewcode-back" href="../index.html#mcollective.Message.subscribe_to_replies">[docs]</a>    <span class="k">def</span> <span class="nf">subscribe_to_replies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Subscribe to the response topic for this message.</span>
+<span class="sd">        </span>
+<span class="sd">        You should run this before sending the message, if you are interested</span>
+<span class="sd">        in the replies from agents.&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stomp_client</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target_reply</span><span class="p">)</span>
+    </div>
+<div class="viewcode-block" id="Message.sign"><a class="viewcode-back" href="../index.html#mcollective.Message.sign">[docs]</a>    <span class="k">def</span> <span class="nf">sign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">private_key</span><span class="p">,</span> <span class="n">certificate_name</span><span class="p">,</span> <span class="n">sender_id</span><span class="o">=</span><span class="s">&#39;python&#39;</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Sign the body of the message.</span>
+
+<span class="sd">        :param private_key: an RSA object with a private key loaded.</span>
+<span class="sd">        :type private_key: M2Crypto.RSA.RSA</span>
+<span class="sd">        :param certificate_name: the name of the matching cert (as stored on the agents).</span>
+<span class="sd">        :type certificate_name: str&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">[</span><span class="s">&quot;:callerid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;cert=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">certificate_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">[</span><span class="s">&quot;:senderid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sender_id</span>
+        <span class="n">hashed_signature</span> <span class="o">=</span> <span class="n">private_key</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">sha1</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">[</span><span class="s">&#39;:body&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">digest</span><span class="p">(),</span> <span class="s">&#39;sha1&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">[</span><span class="s">&#39;:hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashed_signature</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;base64&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Message.send"><a class="viewcode-back" href="../index.html#mcollective.Message.send">[docs]</a>    <span class="k">def</span> <span class="nf">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Send the encoded message to the target topic</span>
+
+<span class="sd">        :param debug: if true, the message will be printed to standard error.</span>
+<span class="sd">        :type debug: boolean</span>
+<span class="sd">        </span>
+<span class="sd">        You can only send each message once. Subsequent calls will raise :class:`AlreadySentException`&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sent</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AlreadySentException</span><span class="p">()</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span> <span class="n">explicit_start</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">explicit_end</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">debug</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">sys</span>
+            <span class="k">print</span> <span class="o">&gt;&gt;</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stomp_client</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sent</span> <span class="o">=</span> <span class="bp">True</span>
+    </div>
+<div class="viewcode-block" id="Message.collect_results"><a class="viewcode-back" href="../index.html#mcollective.Message.collect_results">[docs]</a>    <span class="k">def</span> <span class="nf">collect_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Collect the results from a previous :func:`Message.send` call.</span>
+<span class="sd">        </span>
+<span class="sd">        :rtype: list of STOMP messages which match this object&#39;s `:requestid`&#39;&#39;&#39;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stomp_client</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">decoded_message</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">decoded_message</span><span class="p">[</span><span class="s">&#39;:requestid&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">rid</span><span class="p">:</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decoded_message</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span>
+    </div>
+<div class="viewcode-block" id="Message.send_and_await_results"><a class="viewcode-back" href="../index.html#mcollective.Message.send_and_await_results">[docs]</a>    <span class="k">def</span> <span class="nf">send_and_await_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Send the prepared RPC message, wait a set period and collect the results.</span>
+
+<span class="sd">        :param timeout: Time to wait for a response.</span>
+<span class="sd">        :type timeout: int</span>
+<span class="sd">        :param debug: if true, the message will be printed to standard error.</span>
+<span class="sd">        :type debug: boolean</span>
+<span class="sd">        :rtype: list of STOMP messages which match this object&#39;s `:requestid`&#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subscribe_to_replies</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="n">timeout</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">collect_results</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">mcollective-python v0.0 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Aaron Brady.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
